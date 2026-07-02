@@ -14,15 +14,20 @@
         <n-step title="确认" />
       </n-steps>
 
+      <n-progress v-if="submitting" :percentage="regProgress" :status="regProgress === 100 ? 'success' : 'info'" style="margin: 16px 0;" />
+
       <!-- 成功结果页 -->
       <div v-if="successUrl" class="step-content" style="text-align: center; padding: 40px 0;">
         <n-result status="success" title="注册成功">
           <template #footer>
             <n-space vertical>
               <n-text>您的租户已创建完成：</n-text>
-              <n-button type="primary" tag="a" :href="successUrl" target="_blank">
-                {{ successUrl }}
-              </n-button>
+              <n-input :value="successUrl" readonly @click="copyUrl" style="cursor: pointer; text-align: center; font-size: 18px; font-weight: bold;">
+                <template #prefix>https://</template>
+                <template #suffix>
+                  <n-button text @click.stop="copyUrl">复制</n-button>
+                </template>
+              </n-input>
             </n-space>
           </template>
         </n-result>
@@ -150,6 +155,7 @@ const subdomainAvailable = ref(false)
 const subdomainStatus = ref('')
 const turnstileVerified = ref(false)
 const successUrl = ref('')
+const regProgress = ref(0)
 
 const form = ref({
   subdomain: '',
@@ -207,6 +213,11 @@ onMounted(() => {
   renderTurnstile()
 })
 
+function copyUrl() {
+  navigator.clipboard.writeText('https://' + successUrl.value)
+  message.success('已复制到剪贴板')
+}
+
 let turnstileWidgetId = null
 
 function renderTurnstile() {
@@ -239,6 +250,7 @@ async function handleSubmit() {
   }
 
   submitting.value = true
+  regProgress.value = 0
   try {
     // 第一步：Turnstile 验证 + 签发 JWT（含所有注册信息）
     const tokenResp = await axios.post(`${apiBase}/api/sign-token`, {
@@ -252,16 +264,19 @@ async function handleSubmit() {
       internal_secret: 'Internal$KuoHu233*Astra',
     })
     const token = tokenResp.data.token
+    regProgress.value = 33
 
     // 第二步：初始化租户数据（JWT 中已包含完整信息）
     await axios.post(`${astraApiBase}/web/admin/register-tenant`, null, {
       headers: { 'X-Reg-Token': token },
     })
+    regProgress.value = 66
 
     // 第三步：创建 DNS 记录
-    const dnsResp = await axios.post(`${apiBase}/api/create-dns`, { token })
+    await axios.post(`${apiBase}/api/create-dns`, { token })
+    regProgress.value = 100
     message.success('注册成功！')
-    successUrl.value = dnsResp.data.url
+    successUrl.value = form.value.subdomain + '.getastra.cn'
   } catch (e) {
     message.error(e?.response?.data?.error || '注册失败')
     resetTurnstile()
