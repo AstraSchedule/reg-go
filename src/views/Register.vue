@@ -216,24 +216,21 @@ async function handleSubmit() {
 
   submitting.value = true
   try {
-    // 第一步：Turnstile 验证 + 签发 JWT
+    // 第一步：Turnstile 验证 + 签发 JWT（含所有注册信息）
     const tokenResp = await axios.post(`${apiBase}/api/sign-token`, {
-      subdomain: form.value.subdomain,
-      username: form.value.username,
-      turnstile_token: document.querySelector('[name="cf-turnstile-response"]')?.value || '',
-      internal_secret: 'Internal$KuoHu233*Astra',
-    })
-    const token = tokenResp.data.token
-
-    // 第二步：初始化租户数据
-    await axios.post(`${astraApiBase}/web/admin/register-tenant`, {
       subdomain: form.value.subdomain,
       username: form.value.username,
       password: form.value.password,
       school: form.value.school,
       grade: form.value.grade,
       class: form.value.class,
-    }, {
+      turnstile_token: document.querySelector('[name="cf-turnstile-response"]')?.value || '',
+      internal_secret: 'Internal$KuoHu233*Astra',
+    })
+    const token = tokenResp.data.token
+
+    // 第二步：初始化租户数据（JWT 中已包含完整信息）
+    await axios.post(`${astraApiBase}/web/admin/register-tenant`, null, {
       headers: { 'X-Reg-Token': token },
     })
 
