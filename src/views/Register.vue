@@ -2,19 +2,19 @@
   <div class="register-wrapper">
     <n-card title="星程课表 - 注册新租户" class="register-card">
       <n-steps :current="currentStep" :status="stepStatus">
-        <n-step title="域名" description="设置你的子域名" />
-        <n-step title="管理员" description="设置管理员账户" />
-        <n-step title="学校信息" description="填写学校基本信息" />
-        <n-step title="确认" description="验证并提交" />
+        <n-step title="域名" />
+        <n-step title="管理员" />
+        <n-step title="学校信息" />
+        <n-step title="确认" />
       </n-steps>
 
       <div class="step-content">
         <!-- Step 1: 域名 -->
         <template v-if="currentStep === 1">
           <n-alert type="info" title="提示" style="margin-bottom: 16px;">
-            子域名建议：
-              如果您是个人：使用您日常使用的较为简短的用户名，比如 kuohu
-              如果您是学校：使用您们学校较为简短且不易重复的缩写，比如 nj39
+            子域名建议：<br>
+            如果您是个人：使用您日常使用的较为简短的用户名，比如 kuohu<br>
+            如果您是学校：使用您们学校较为简短且不易重复的缩写，比如 nj39<br>
             域名需要您在为教室机器安装后手动输一遍，所以越简短越好！
           </n-alert>
           <n-form label-placement="left">
@@ -37,8 +37,8 @@
         <!-- Step 2: 管理员 -->
         <template v-if="currentStep === 2">
           <n-alert type="info" title="提示" style="margin-bottom: 16px;">
-            此为管理员账户，拥有该租户的最高权限，请您妥善保存此账户的用户名与密码。
-            其他用户若遗忘密码，要通过管理员账户更改，但管理员若遗忘密码，则您需要与项目维护者联系！！
+            此为管理员账户，拥有该租户的最高权限，请您妥善保存此账户的用户名与密码。<br>
+            其他用户若遗忘密码，要通过管理员账户更改，但管理员若遗忘密码，则您需要与项目维护者联系！
           </n-alert>
           <n-form label-placement="left">
             <n-form-item label="用户名">
@@ -56,7 +56,12 @@
         <!-- Step 3: 学校信息 -->
         <template v-if="currentStep === 3">
           <n-alert type="info" title="提示" style="margin-bottom: 16px;">
-            TODO: 用户填写内容
+            学校名称：建议为您的学校的简写，比如 “39”。这与子域名互相独立，并不冲突，同样越简短越好。<br>
+            年级名称：建议的写法有两种：“9”（9年级） 或者 2023（2023级）。通常为了方便统一管理，建议前者。<br>
+            班级名称：建议以数字来标记，比如 “1”、“2”…… 您只要写任意一个班级即可<br>
+            这会为您的租户创建一个空白班级，在创建完成之后，您可以通过复制这个班级来快速完成其他班级的配置。<br>
+            学校名称与子域名无关，学校名称只存在于本租户下，所以可以任意取名，不用在意重复。<br>
+            此项仅用于初始化租户，实际您可以在完成后创建任意多的学校、年级或班级。
           </n-alert>
           <n-form label-placement="left">
             <n-form-item label="学校名称">
@@ -75,7 +80,8 @@
         <div v-if="currentStep === 4">
           <n-space vertical>
             <n-alert type="info" title="提示" style="margin-bottom: 16px;">
-              TODO: 用户填写内容
+              请确定您的填写没有问题，为了安全，租户无法删除自己！<br>
+              如果需要删除租户，请与系统维护者联系。
             </n-alert>
             <n-alert type="info" title="注册摘要">
               <p>域名：{{ form.subdomain }}.getastra.cn</p>
@@ -238,7 +244,7 @@ async function handleSubmit() {
   background: var(--n-color, #f5f5f5);
 }
 .register-card {
-  width: 560px;
+  width: 700px;
 }
 .step-content {
   margin-top: 24px;
