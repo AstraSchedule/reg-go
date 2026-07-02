@@ -224,8 +224,8 @@ async function handleSubmit() {
       class: form.value.class,
       turnstile_token: document.querySelector('[name="cf-turnstile-response"]')?.value || '',
     })
-    message.success('注册成功！')
-    window.open(resp.data.url, '_blank')
+    message.success('注册成功！正在跳转...')
+    window.location.href = resp.data.url
   } catch (e) {
     message.error(e?.response?.data?.error || '注册失败')
   } finally {
