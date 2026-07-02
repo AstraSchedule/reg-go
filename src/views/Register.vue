@@ -10,51 +10,69 @@
 
       <div class="step-content">
         <!-- Step 1: 域名 -->
-        <n-form v-if="currentStep === 1" label-placement="left">
-          <n-form-item label="子域名">
-            <n-input v-model:value="form.subdomain" placeholder="如：school" @input="checkSubdomain" />
-          </n-form-item>
-          <n-form-item label="预览">
-            <n-text depth="3">
-              {{ form.subdomain ? form.subdomain + '.getastra.cn → class.getastra.cn' : '请输入子域名' }}
-            </n-text>
-          </n-form-item>
-          <n-form-item v-if="subdomainStatus" label="状态">
-            <n-text :type="subdomainAvailable ? 'success' : 'error'">
-              {{ subdomainStatus }}
-            </n-text>
-          </n-form-item>
-        </n-form>
+        <template v-if="currentStep === 1">
+          <n-alert type="info" title="提示" style="margin-bottom: 16px;">
+            TODO: 用户填写内容
+          </n-alert>
+          <n-form label-placement="left">
+            <n-form-item label="子域名">
+              <n-input v-model:value="form.subdomain" placeholder="如：school" @input="checkSubdomain" />
+            </n-form-item>
+            <n-form-item label="预览">
+              <n-text depth="3">
+                {{ form.subdomain ? form.subdomain + '.getastra.cn → class.getastra.cn' : '请输入子域名' }}
+              </n-text>
+            </n-form-item>
+            <n-form-item v-if="subdomainStatus" label="状态">
+              <n-text :type="subdomainAvailable ? 'success' : 'error'">
+                {{ subdomainStatus }}
+              </n-text>
+            </n-form-item>
+          </n-form>
+        </template>
 
         <!-- Step 2: 管理员 -->
-        <n-form v-if="currentStep === 2" label-placement="left">
-          <n-form-item label="用户名">
-            <n-input v-model:value="form.username" placeholder="至少 3 位" />
-          </n-form-item>
-          <n-form-item label="密码">
-            <n-input v-model:value="form.password" type="password" show-password-on="click" placeholder="至少 6 位" />
-          </n-form-item>
-          <n-form-item label="确认密码">
-            <n-input v-model:value="form.confirmPassword" type="password" show-password-on="click" placeholder="再次输入密码" />
-          </n-form-item>
-        </n-form>
+        <template v-if="currentStep === 2">
+          <n-alert type="info" title="提示" style="margin-bottom: 16px;">
+            TODO: 用户填写内容
+          </n-alert>
+          <n-form label-placement="left">
+            <n-form-item label="用户名">
+              <n-input v-model:value="form.username" placeholder="至少 3 位" />
+            </n-form-item>
+            <n-form-item label="密码">
+              <n-input v-model:value="form.password" type="password" show-password-on="click" placeholder="至少 6 位" />
+            </n-form-item>
+            <n-form-item label="确认密码">
+              <n-input v-model:value="form.confirmPassword" type="password" show-password-on="click" placeholder="再次输入密码" />
+            </n-form-item>
+          </n-form>
+        </template>
 
         <!-- Step 3: 学校信息 -->
-        <n-form v-if="currentStep === 3" label-placement="left">
-          <n-form-item label="学校名称">
-            <n-input v-model:value="form.school" placeholder="如：zh" />
-          </n-form-item>
-          <n-form-item label="年级名称">
-            <n-input v-model:value="form.grade" placeholder="如：2023" />
-          </n-form-item>
-          <n-form-item label="班级名称">
-            <n-input v-model:value="form.class" placeholder="如：1" />
-          </n-form-item>
-        </n-form>
+        <template v-if="currentStep === 3">
+          <n-alert type="info" title="提示" style="margin-bottom: 16px;">
+            TODO: 用户填写内容
+          </n-alert>
+          <n-form label-placement="left">
+            <n-form-item label="学校名称">
+              <n-input v-model:value="form.school" placeholder="如：zh" />
+            </n-form-item>
+            <n-form-item label="年级名称">
+              <n-input v-model:value="form.grade" placeholder="如：2023" />
+            </n-form-item>
+            <n-form-item label="班级名称">
+              <n-input v-model:value="form.class" placeholder="如：1" />
+            </n-form-item>
+          </n-form>
+        </template>
 
         <!-- Step 4: 确认 -->
         <div v-if="currentStep === 4">
           <n-space vertical>
+            <n-alert type="info" title="提示" style="margin-bottom: 16px;">
+              TODO: 用户填写内容
+            </n-alert>
             <n-alert type="info" title="注册摘要">
               <p>域名：{{ form.subdomain }}.getastra.cn</p>
               <p>管理员：{{ form.username }}</p>
