@@ -45,7 +45,7 @@
             <n-input v-model:value="form.school" placeholder="如：zh" />
           </n-form-item>
           <n-form-item label="年级名称">
-            <n-input v-model:value="form.grade" placeholder="如：39" />
+            <n-input v-model:value="form.grade" placeholder="如：2023" />
           </n-form-item>
           <n-form-item label="班级名称">
             <n-input v-model:value="form.class" placeholder="如：1" />
