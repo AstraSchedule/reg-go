@@ -191,15 +191,23 @@ onMounted(() => {
   renderTurnstile()
 })
 
+let turnstileWidgetId = null
+
 function renderTurnstile() {
   if (!turnstileSitekey || !window.turnstile) return
   const container = document.getElementById('turnstile-container')
   if (!container || container.childElementCount > 0) return
-  window.turnstile.render('#turnstile-container', {
+  turnstileWidgetId = window.turnstile.render('#turnstile-container', {
     sitekey: turnstileSitekey,
     callback: () => { turnstileVerified.value = true },
     'expired-callback': () => { turnstileVerified.value = false },
   })
+}
+
+function resetTurnstile() {
+  if (!window.turnstile || turnstileWidgetId === null) return
+  turnstileVerified.value = false
+  window.turnstile.reset(turnstileWidgetId)
 }
 
 watch(currentStep, (step) => {
@@ -240,6 +248,7 @@ async function handleSubmit() {
     window.location.href = dnsResp.data.url
   } catch (e) {
     message.error(e?.response?.data?.error || '注册失败')
+    resetTurnstile()
   } finally {
     submitting.value = false
   }
