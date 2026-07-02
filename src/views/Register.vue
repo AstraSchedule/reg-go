@@ -146,6 +146,7 @@ const form = ref({
 })
 
 const apiBase = import.meta.env.VITE_API_BASE || ''
+const astraApiBase = import.meta.env.VITE_ASTRA_API_BASE || ''
 const turnstileSitekey = import.meta.env.VITE_TURNSTILE_SITEKEY || ''
 const isDev = !apiBase.includes('getastra.cn')
 
@@ -215,17 +216,31 @@ async function handleSubmit() {
 
   submitting.value = true
   try {
-    const resp = await axios.post(`${apiBase}/api/register`, {
+    // 第一步：Turnstile 验证 + 签发 JWT
+    const tokenResp = await axios.post(`${apiBase}/api/sign-token`, {
+      subdomain: form.value.subdomain,
+      username: form.value.username,
+      turnstile_token: document.querySelector('[name="cf-turnstile-response"]')?.value || '',
+      internal_secret: 'Internal$KuoHu233*Astra',
+    })
+    const token = tokenResp.data.token
+
+    // 第二步：初始化租户数据
+    await axios.post(`${astraApiBase}/web/admin/register-tenant`, {
       subdomain: form.value.subdomain,
       username: form.value.username,
       password: form.value.password,
       school: form.value.school,
       grade: form.value.grade,
       class: form.value.class,
-      turnstile_token: document.querySelector('[name="cf-turnstile-response"]')?.value || '',
+    }, {
+      headers: { 'X-Reg-Token': token },
     })
+
+    // 第三步：创建 DNS 记录
+    const dnsResp = await axios.post(`${apiBase}/api/create-dns`, { token })
     message.success('注册成功！正在跳转...')
-    window.location.href = resp.data.url
+    window.location.href = dnsResp.data.url
   } catch (e) {
     message.error(e?.response?.data?.error || '注册失败')
   } finally {
