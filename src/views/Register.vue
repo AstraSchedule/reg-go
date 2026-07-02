@@ -1,6 +1,12 @@
 <template>
   <div class="register-wrapper" :style="{ background: themeVars.bodyColor }">
-    <n-card title="星程课表 - 注册新租户" class="register-card">
+    <n-card class="register-card">
+      <template #header>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="https://image-hk-1.oss-accelerate.aliyuncs.com/icon.png" alt="Logo" style="width: 28px; height: 28px; border-radius: 6px;" />
+          <span>星程课表 - 注册新租户</span>
+        </div>
+      </template>
       <n-steps :current="currentStep" :status="stepStatus">
         <n-step title="域名" />
         <n-step title="管理员" />
