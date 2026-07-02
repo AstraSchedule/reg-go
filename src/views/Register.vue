@@ -23,7 +23,6 @@
             <n-space vertical>
               <n-text>您的租户已创建完成：</n-text>
               <n-input :value="successUrl" readonly @click="copyUrl" style="cursor: pointer; text-align: center; font-size: 18px; font-weight: bold;">
-                <template #prefix>https://</template>
                 <template #suffix>
                   <n-button text @click.stop="copyUrl">复制</n-button>
                 </template>
