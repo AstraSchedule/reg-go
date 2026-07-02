@@ -141,7 +141,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   NCard, NSteps, NStep, NForm, NFormItem, NInput, NButton,
-  NSpace, NText, NAlert, NResult, useMessage, useThemeVars
+  NSpace, NText, NAlert, NResult, NProgress, useMessage, useThemeVars
 } from 'naive-ui'
 
 const themeVars = useThemeVars()
