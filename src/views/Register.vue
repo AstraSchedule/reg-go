@@ -111,7 +111,7 @@
             <n-alert type="info" title="注册摘要">
               <p>域名：{{ form.subdomain }}.getastra.cn</p>
               <p>管理员：{{ form.username }}</p>
-              <p>学校：{{ form.school }} / {{ form.grade }} / {{ form.class }} 班</p>
+              <p>学校：{{ form.school }} / {{ form.grade }} / {{ form.class }}</p>
             </n-alert>
             <div v-if="isDev" id="turnstile-container">
               <n-alert type="warning" title="开发模式">Turnstile 人机验证已跳过</n-alert>
@@ -213,7 +213,7 @@ onMounted(() => {
 })
 
 function copyUrl() {
-  navigator.clipboard.writeText('https://' + successUrl.value)
+  navigator.clipboard.writeText(successUrl.value)
   message.success('已复制到剪贴板')
 }
 
