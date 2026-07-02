@@ -60,7 +60,10 @@
               <p>管理员：{{ form.username }}</p>
               <p>学校：{{ form.school }} / {{ form.grade }} / {{ form.class }} 班</p>
             </n-alert>
-            <div id="turnstile-container"></div>
+            <div v-if="isDev" id="turnstile-container">
+              <n-alert type="warning" title="开发模式">Turnstile 人机验证已跳过</n-alert>
+            </div>
+            <div v-else id="turnstile-container"></div>
             <n-button type="error" block :loading="submitting" :disabled="!turnstileVerified" @click="handleSubmit">
               确认注册
             </n-button>
@@ -108,6 +111,7 @@ const form = ref({
 
 const apiBase = import.meta.env.VITE_API_BASE || ''
 const turnstileSitekey = import.meta.env.VITE_TURNSTILE_SITEKEY || ''
+const isDev = !apiBase.includes('getastra.cn')
 
 const stepStatus = computed(() => {
   if (submitting.value) return 'process'
@@ -143,6 +147,10 @@ function checkSubdomain() {
 }
 
 onMounted(() => {
+  if (isDev) {
+    turnstileVerified.value = true
+    return
+  }
   if (turnstileSitekey) {
     const script = document.createElement('script')
     script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
