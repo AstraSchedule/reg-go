@@ -181,32 +181,23 @@ onMounted(() => {
     turnstileVerified.value = true
     return
   }
-  if (turnstileSitekey) {
-    const script = document.createElement('script')
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
-    script.onload = () => {
-      window.turnstile.render('#turnstile-container', {
-        sitekey: turnstileSitekey,
-        callback: () => { turnstileVerified.value = true },
-        'expired-callback': () => { turnstileVerified.value = false },
-      })
-    }
-    document.head.appendChild(script)
-  }
+  renderTurnstile()
 })
 
+function renderTurnstile() {
+  if (!turnstileSitekey || !window.turnstile) return
+  const container = document.getElementById('turnstile-container')
+  if (!container || container.childElementCount > 0) return
+  window.turnstile.render('#turnstile-container', {
+    sitekey: turnstileSitekey,
+    callback: () => { turnstileVerified.value = true },
+    'expired-callback': () => { turnstileVerified.value = false },
+  })
+}
+
 watch(currentStep, (step) => {
-  if (step === 4 && turnstileSitekey && window.turnstile) {
-    setTimeout(() => {
-      const container = document.getElementById('turnstile-container')
-      if (container && container.childElementCount === 0) {
-        window.turnstile.render('#turnstile-container', {
-          sitekey: turnstileSitekey,
-          callback: () => { turnstileVerified.value = true },
-          'expired-callback': () => { turnstileVerified.value = false },
-        })
-      }
-    }, 100)
+  if (step === 4 && !isDev) {
+    setTimeout(renderTurnstile, 100)
   }
 })
 
@@ -243,6 +234,7 @@ async function handleSubmit() {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  background: var(--n-color, #f5f5f5);
 }
 .register-card {
   width: 700px;
