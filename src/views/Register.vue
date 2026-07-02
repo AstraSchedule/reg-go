@@ -1,5 +1,5 @@
 <template>
-  <div class="register-wrapper">
+  <div class="register-wrapper" :style="{ background: themeVars.bodyColor }">
     <n-card title="星程课表 - 注册新租户" class="register-card">
       <n-steps :current="currentStep" :status="stepStatus">
         <n-step title="域名" />
@@ -115,8 +115,10 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   NCard, NSteps, NStep, NForm, NFormItem, NInput, NButton,
-  NSpace, NText, NAlert, useMessage
+  NSpace, NText, NAlert, useMessage, useThemeVars
 } from 'naive-ui'
+
+const themeVars = useThemeVars()
 import axios from 'axios'
 
 const message = useMessage()
@@ -241,7 +243,6 @@ async function handleSubmit() {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: var(--n-color, #f5f5f5);
 }
 .register-card {
   width: 700px;
