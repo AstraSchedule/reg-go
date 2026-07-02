@@ -7,14 +7,29 @@
           <span>星程课表 - 注册新租户</span>
         </div>
       </template>
-      <n-steps :current="currentStep" :status="stepStatus">
+      <n-steps v-if="!successUrl" :current="currentStep" :status="stepStatus">
         <n-step title="域名" />
         <n-step title="管理员" />
         <n-step title="学校信息" />
         <n-step title="确认" />
       </n-steps>
 
-      <div class="step-content">
+      <!-- 成功结果页 -->
+      <div v-if="successUrl" class="step-content" style="text-align: center; padding: 40px 0;">
+        <n-result status="success" title="注册成功">
+          <template #footer>
+            <n-space vertical>
+              <n-text>您的租户已创建完成：</n-text>
+              <n-button type="primary" tag="a" :href="successUrl" target="_blank">
+                {{ successUrl }}
+              </n-button>
+            </n-space>
+          </template>
+        </n-result>
+      </div>
+
+      <!-- 注册表单 -->
+      <template v-else>
         <!-- Step 1: 域名 -->
         <template v-if="currentStep === 1">
           <n-alert type="info" title="提示" style="margin-bottom: 16px;">
@@ -103,9 +118,9 @@
             </n-button>
           </n-space>
         </div>
-      </div>
+      </template>
 
-      <template #action>
+      <template #action v-if="!successUrl">
         <n-space v-if="currentStep < 4" justify="end">
           <n-button v-if="currentStep > 1" @click="currentStep--">上一步</n-button>
           <n-button type="primary" :disabled="!canProceed" @click="currentStep++">
@@ -121,7 +136,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   NCard, NSteps, NStep, NForm, NFormItem, NInput, NButton,
-  NSpace, NText, NAlert, useMessage, useThemeVars
+  NSpace, NText, NAlert, NResult, useMessage, useThemeVars
 } from 'naive-ui'
 
 const themeVars = useThemeVars()
@@ -134,6 +149,7 @@ const submitting = ref(false)
 const subdomainAvailable = ref(false)
 const subdomainStatus = ref('')
 const turnstileVerified = ref(false)
+const successUrl = ref('')
 
 const form = ref({
   subdomain: '',
@@ -244,8 +260,8 @@ async function handleSubmit() {
 
     // 第三步：创建 DNS 记录
     const dnsResp = await axios.post(`${apiBase}/api/create-dns`, { token })
-    message.success('注册成功！正在跳转...')
-    window.location.href = dnsResp.data.url
+    message.success('注册成功！')
+    successUrl.value = dnsResp.data.url
   } catch (e) {
     message.error(e?.response?.data?.error || '注册失败')
     resetTurnstile()
