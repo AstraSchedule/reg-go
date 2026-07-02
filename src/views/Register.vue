@@ -12,7 +12,7 @@
         <!-- Step 1: 域名 -->
         <n-form v-if="currentStep === 1" label-placement="left">
           <n-form-item label="子域名">
-            <n-input v-model:value="form.subdomain" placeholder="如：school-a" @input="checkSubdomain" />
+            <n-input v-model:value="form.subdomain" placeholder="如：school" @input="checkSubdomain" />
           </n-form-item>
           <n-form-item label="预览">
             <n-text depth="3">
@@ -42,10 +42,10 @@
         <!-- Step 3: 学校信息 -->
         <n-form v-if="currentStep === 3" label-placement="left">
           <n-form-item label="学校名称">
-            <n-input v-model:value="form.school" placeholder="如：实验中学" />
+            <n-input v-model:value="form.school" placeholder="如：zh" />
           </n-form-item>
           <n-form-item label="年级名称">
-            <n-input v-model:value="form.grade" placeholder="如：2023" />
+            <n-input v-model:value="form.grade" placeholder="如：39" />
           </n-form-item>
           <n-form-item label="班级名称">
             <n-input v-model:value="form.class" placeholder="如：1" />
