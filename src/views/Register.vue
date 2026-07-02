@@ -12,7 +12,10 @@
         <!-- Step 1: 域名 -->
         <template v-if="currentStep === 1">
           <n-alert type="info" title="提示" style="margin-bottom: 16px;">
-            TODO: 用户填写内容
+            子域名建议：
+              如果您是个人：使用您日常使用的较为简短的用户名，比如 kuohu
+              如果您是学校：使用您们学校较为简短且不易重复的缩写，比如 nj39
+            域名需要您在为教室机器安装后手动输一遍，所以越简短越好！
           </n-alert>
           <n-form label-placement="left">
             <n-form-item label="子域名">
@@ -34,7 +37,8 @@
         <!-- Step 2: 管理员 -->
         <template v-if="currentStep === 2">
           <n-alert type="info" title="提示" style="margin-bottom: 16px;">
-            TODO: 用户填写内容
+            此为管理员账户，拥有该租户的最高权限，请您妥善保存此账户的用户名与密码。
+            其他用户若遗忘密码，要通过管理员账户更改，但管理员若遗忘密码，则您需要与项目维护者联系！！
           </n-alert>
           <n-form label-placement="left">
             <n-form-item label="用户名">
