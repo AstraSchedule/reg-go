@@ -26,16 +26,28 @@
       <div v-if="successUrl" class="step-content">
         <n-result status="success" title="注册成功">
           <template #footer>
-            <n-space vertical align="center">
-              <n-text depth="3">您的租户已创建完成</n-text>
-              <n-input :value="successUrl" readonly @click="copyUrl" class="url-input">
-                <template #suffix>
-                  <n-button text @click.stop="copyUrl">复制</n-button>
-                </template>
-              </n-input>
-              <n-button type="primary" tag="a" :href="'https://' + successUrl" target="_blank" size="large">
-                立即访问
-              </n-button>
+            <n-space vertical size="large">
+              <n-timeline>
+                <n-timeline-item type="success" title="第一步：下载安装包">
+                  <n-button tag="a" href="https://hubproxy.khbit.cn/https://github.com/daizihan233/AstraSchedule/releases/latest/download/AstraScheduleInstaller.exe" target="_blank" size="small">
+                    下载 AstraScheduleInstaller.exe
+                  </n-button>
+                </n-timeline-item>
+                <n-timeline-item type="info" title="第二步：复制云端服务地址">
+                  <n-input :value="successUrl" readonly class="url-input" style="margin-bottom: 8px;">
+                    <template #suffix>
+                      <n-button text @click="copyUrl">复制</n-button>
+                    </template>
+                  </n-input>
+                  <n-text depth="3">安装后在客户端设置中粘贴此地址</n-text>
+                </n-timeline-item>
+                <n-timeline-item type="info" title="第三步：前往配置">
+                  <n-button tag="a" href="https://i.getastra.cn" target="_blank" size="small">
+                    打开管理后台
+                  </n-button>
+                  <n-text depth="3" style="display: block; margin-top: 4px;">登录后可管理课表、作息等配置</n-text>
+                </n-timeline-item>
+              </n-timeline>
             </n-space>
           </template>
         </n-result>
@@ -156,7 +168,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   NCard, NSteps, NStep, NForm, NFormItem, NInput, NButton,
-  NSpace, NText, NAlert, NResult, NProgress, NDescriptions, NDescriptionsItem,
+  NSpace, NText, NAlert, NResult, NProgress, NDescriptions, NDescriptionsItem, NTimeline, NTimelineItem,
   useMessage, useThemeVars
 } from 'naive-ui'
 import axios from 'axios'
