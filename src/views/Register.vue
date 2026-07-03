@@ -95,7 +95,7 @@
             <template #header>学校信息</template>
             <n-space vertical size="small">
               <n-text>学校/年级/班级名称仅用于初始化，完成后可自由增删</n-text>
-              <n-text depth="3">年级建议用数字（如 9、2023），班级用数字（如 1、2）</n-text>
+              <n-text depth="3">建议全部使用数字或简写，如 39、2023、1</n-text>
             </n-space>
           </n-alert>
           <n-form label-placement="left" :label-width="80">
@@ -138,9 +138,9 @@
 
       <!-- 导航按钮 -->
       <template #action v-if="!successUrl">
-        <n-space v-if="currentStep < 4" justify="end">
+        <n-space v-if="currentStep >= 1 && currentStep <= 4" justify="end">
           <n-button v-if="currentStep > 1" @click="currentStep--">上一步</n-button>
-          <n-button type="primary" :disabled="!canProceed" @click="currentStep++">
+          <n-button v-if="currentStep < 4" type="primary" :disabled="!canProceed" @click="currentStep++">
             下一步
           </n-button>
         </n-space>
