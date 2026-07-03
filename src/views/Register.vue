@@ -39,7 +39,7 @@
                       <n-button text @click="copyUrl">复制</n-button>
                     </template>
                   </n-input>
-                  <n-text depth="3">安装后在客户端设置中粘贴此地址</n-text>
+                  <n-text depth="3">复制后粘贴至管理页与客户端</n-text>
                 </n-timeline-item>
                 <n-timeline-item type="info" title="第三步：前往配置">
                   <n-button tag="a" href="https://i.getastra.cn" target="_blank" size="small">
