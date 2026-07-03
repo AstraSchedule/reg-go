@@ -94,8 +94,11 @@
           <n-alert type="info" style="margin-bottom: 20px;">
             <template #header>学校信息</template>
             <n-space vertical size="small">
-              <n-text>学校/年级/班级名称仅用于初始化，完成后可自由增删</n-text>
-              <n-text depth="3">建议全部使用数字或简写，如 39、2023、1</n-text>
+              <n-text>三个字段的语义可自由定义，比如：</n-text>
+              <n-text depth="3">• a学校b级c班：39 / 2023 / 1</n-text>
+              <n-text depth="3">• a学校b年级c班：39 / 7 / 8</n-text>
+              <n-text depth="3">• 字母简写：xx / 10 / 3</n-text>
+              <n-text depth="3">初始化后可自由增删，这里只是创建一个空白班级</n-text>
             </n-space>
           </n-alert>
           <n-form label-placement="left" :label-width="80">
