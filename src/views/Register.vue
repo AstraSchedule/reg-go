@@ -1,32 +1,41 @@
 <template>
   <div class="register-wrapper" :style="{ background: themeVars.bodyColor }">
-    <n-card class="register-card">
+    <n-card class="register-card" :bordered="false">
       <template #header>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <img src="https://image-hk-1.oss-accelerate.aliyuncs.com/icon.png" alt="Logo" style="width: 28px; height: 28px; border-radius: 6px;" />
-          <span>星程课表 - 注册新租户</span>
+        <div class="card-header">
+          <img src="https://image-hk-1.oss-accelerate.aliyuncs.com/icon.png" alt="Logo" class="logo" />
+          <div>
+            <div class="title">星程课表</div>
+            <div class="subtitle">注册新租户</div>
+          </div>
         </div>
       </template>
-      <n-steps v-if="!successUrl" :current="currentStep" :status="stepStatus">
+
+      <!-- 进度条 -->
+      <n-progress v-if="submitting" :percentage="regProgress" :status="regProgress === 100 ? 'success' : 'info'" style="margin-bottom: 20px;" />
+
+      <!-- 步骤条 -->
+      <n-steps v-if="!successUrl" :current="currentStep" :status="stepStatus" style="margin-bottom: 24px;">
         <n-step title="域名" />
         <n-step title="管理员" />
         <n-step title="学校信息" />
         <n-step title="确认" />
       </n-steps>
 
-      <n-progress v-if="submitting" :percentage="regProgress" :status="regProgress === 100 ? 'success' : 'info'" style="margin: 16px 0;" />
-
       <!-- 成功结果页 -->
-      <div v-if="successUrl" class="step-content" style="text-align: center; padding: 40px 0;">
+      <div v-if="successUrl" class="step-content">
         <n-result status="success" title="注册成功">
           <template #footer>
-            <n-space vertical>
-              <n-text>您的租户已创建完成：</n-text>
-              <n-input :value="successUrl" readonly @click="copyUrl" style="cursor: pointer; text-align: center; font-size: 18px; font-weight: bold;">
+            <n-space vertical align="center">
+              <n-text depth="3">您的租户已创建完成</n-text>
+              <n-input :value="successUrl" readonly @click="copyUrl" class="url-input">
                 <template #suffix>
                   <n-button text @click.stop="copyUrl">复制</n-button>
                 </template>
               </n-input>
+              <n-button type="primary" tag="a" :href="'https://' + successUrl" target="_blank" size="large">
+                立即访问
+              </n-button>
             </n-space>
           </template>
         </n-result>
@@ -35,14 +44,16 @@
       <!-- 注册表单 -->
       <template v-else>
         <!-- Step 1: 域名 -->
-        <template v-if="currentStep === 1">
-          <n-alert type="info" title="提示" style="margin-bottom: 16px;">
-            子域名建议：<br>
-            如果您是个人：使用您日常使用的较为简短的用户名，比如 kuohu<br>
-            如果您是学校：使用您们学校较为简短且不易重复的缩写，比如 nj39<br>
-            域名需要您在为教室机器安装后手动输一遍，所以越简短越好！
+        <div v-if="currentStep === 1" class="step-content">
+          <n-alert type="info" style="margin-bottom: 20px;">
+            <template #header>子域名建议</template>
+            <n-space vertical size="small">
+              <n-text>个人用户：使用简短的用户名，如 <n-text code>kuohu</n-text></n-text>
+              <n-text>学校用户：使用学校简写，如 <n-text code>nj39</n-text></n-text>
+              <n-text depth="3">域名需要在教室机器上手动输入，越短越好</n-text>
+            </n-space>
           </n-alert>
-          <n-form label-placement="left">
+          <n-form label-placement="left" :label-width="80">
             <n-form-item label="子域名">
               <n-input v-model:value="form.subdomain" placeholder="如：school" @input="checkSubdomain" />
             </n-form-item>
@@ -57,15 +68,15 @@
               </n-text>
             </n-form-item>
           </n-form>
-        </template>
+        </div>
 
         <!-- Step 2: 管理员 -->
-        <template v-if="currentStep === 2">
-          <n-alert type="info" title="提示" style="margin-bottom: 16px;">
-            此为管理员账户，拥有该租户的最高权限，请您妥善保存此账户的用户名与密码。<br>
-            其他用户若遗忘密码，要通过管理员账户更改，但管理员若遗忘密码，则您需要与项目维护者联系！
+        <div v-if="currentStep === 2" class="step-content">
+          <n-alert type="warning" style="margin-bottom: 20px;">
+            <template #header>管理员账户</template>
+            <n-text>拥有该租户的最高权限，请妥善保存。管理员遗忘密码需联系维护者。</n-text>
           </n-alert>
-          <n-form label-placement="left">
+          <n-form label-placement="left" :label-width="80">
             <n-form-item label="用户名">
               <n-input v-model:value="form.username" placeholder="至少 3 位" />
             </n-form-item>
@@ -76,54 +87,56 @@
               <n-input v-model:value="form.confirmPassword" type="password" show-password-on="click" placeholder="再次输入密码" />
             </n-form-item>
           </n-form>
-        </template>
+        </div>
 
         <!-- Step 3: 学校信息 -->
-        <template v-if="currentStep === 3">
-          <n-alert type="info" title="提示" style="margin-bottom: 16px;">
-            学校名称：建议为您的学校的简写，比如 “39”。这与子域名互相独立，并不冲突，同样越简短越好。<br>
-            年级名称：建议的写法有两种：“9”（9年级） 或者 2023（2023级）。通常为了方便统一管理，建议前者。<br>
-            班级名称：建议以数字来标记，比如 “1”、“2”…… 您只要写任意一个班级即可<br>
-            这会为您的租户创建一个空白班级，在创建完成之后，您可以通过复制这个班级来快速完成其他班级的配置。<br>
-            学校名称与子域名无关，学校名称只存在于本租户下，所以可以任意取名，不用在意重复。<br>
-            此项仅用于初始化租户，实际您可以在完成后创建任意多的学校、年级或班级。
+        <div v-if="currentStep === 3" class="step-content">
+          <n-alert type="info" style="margin-bottom: 20px;">
+            <template #header>学校信息</template>
+            <n-space vertical size="small">
+              <n-text>学校/年级/班级名称仅用于初始化，完成后可自由增删</n-text>
+              <n-text depth="3">年级建议用数字（如 9、2023），班级用数字（如 1、2）</n-text>
+            </n-space>
           </n-alert>
-          <n-form label-placement="left">
-            <n-form-item label="学校名称">
+          <n-form label-placement="left" :label-width="80">
+            <n-form-item label="学校">
               <n-input v-model:value="form.school" placeholder="如：zh" />
             </n-form-item>
-            <n-form-item label="年级名称">
+            <n-form-item label="年级">
               <n-input v-model:value="form.grade" placeholder="如：2023" />
             </n-form-item>
-            <n-form-item label="班级名称">
+            <n-form-item label="班级">
               <n-input v-model:value="form.class" placeholder="如：1" />
             </n-form-item>
           </n-form>
-        </template>
+        </div>
 
         <!-- Step 4: 确认 -->
-        <div v-if="currentStep === 4">
-          <n-space vertical>
-            <n-alert type="info" title="提示" style="margin-bottom: 16px;">
-              请确定您的填写没有问题，为了安全，租户无法删除自己！<br>
-              如果需要删除租户，请与系统维护者联系。
-            </n-alert>
-            <n-alert type="info" title="注册摘要">
-              <p>域名：{{ form.subdomain }}.getastra.cn</p>
-              <p>管理员：{{ form.username }}</p>
-              <p>学校：{{ form.school }} / {{ form.grade }} / {{ form.class }}</p>
-            </n-alert>
-            <div v-if="isDev" id="turnstile-container">
-              <n-alert type="warning" title="开发模式">Turnstile 人机验证已跳过</n-alert>
-            </div>
-            <div v-else id="turnstile-container"></div>
-            <n-button type="error" block :loading="submitting" :disabled="!turnstileVerified" @click="handleSubmit">
-              确认注册
-            </n-button>
-          </n-space>
+        <div v-if="currentStep === 4" class="step-content">
+          <n-alert type="warning" style="margin-bottom: 20px;">
+            <template #header>请确认信息</template>
+            <n-text>租户创建后无法自行删除，如需删除请联系维护者</n-text>
+          </n-alert>
+          <n-descriptions :column="1" label-placement="left" bordered size="small">
+            <n-descriptions-item label="域名">{{ form.subdomain }}.getastra.cn</n-descriptions-item>
+            <n-descriptions-item label="管理员">{{ form.username }}</n-descriptions-item>
+            <n-descriptions-item label="学校">{{ form.school }}</n-descriptions-item>
+            <n-descriptions-item label="年级">{{ form.grade }}</n-descriptions-item>
+            <n-descriptions-item label="班级">{{ form.class }}</n-descriptions-item>
+          </n-descriptions>
+
+          <div v-if="isDev" id="turnstile-container" style="margin-top: 16px;">
+            <n-alert type="warning">开发模式：Turnstile 人机验证已跳过</n-alert>
+          </div>
+          <div v-else id="turnstile-container" style="margin-top: 16px;"></div>
+
+          <n-button type="error" block size="large" :loading="submitting" :disabled="!turnstileVerified" @click="handleSubmit" style="margin-top: 16px;">
+            确认注册
+          </n-button>
         </div>
       </template>
 
+      <!-- 导航按钮 -->
       <template #action v-if="!successUrl">
         <n-space v-if="currentStep < 4" justify="end">
           <n-button v-if="currentStep > 1" @click="currentStep--">上一步</n-button>
@@ -140,12 +153,12 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import {
   NCard, NSteps, NStep, NForm, NFormItem, NInput, NButton,
-  NSpace, NText, NAlert, NResult, NProgress, useMessage, useThemeVars
+  NSpace, NText, NAlert, NResult, NProgress, NDescriptions, NDescriptionsItem,
+  useMessage, useThemeVars
 } from 'naive-ui'
-
-const themeVars = useThemeVars()
 import axios from 'axios'
 
+const themeVars = useThemeVars()
 const message = useMessage()
 
 const currentStep = ref(1)
@@ -171,10 +184,7 @@ const astraApiBase = import.meta.env.VITE_ASTRA_API_BASE || ''
 const turnstileSitekey = import.meta.env.VITE_TURNSTILE_SITEKEY || ''
 const isDev = !apiBase.includes('getastra.cn')
 
-const stepStatus = computed(() => {
-  if (submitting.value) return 'process'
-  return 'process'
-})
+const stepStatus = computed(() => submitting.value ? 'process' : 'process')
 
 const canProceed = computed(() => {
   switch (currentStep.value) {
@@ -251,7 +261,6 @@ async function handleSubmit() {
   submitting.value = true
   regProgress.value = 0
   try {
-    // 第一步：Turnstile 验证 + 签发 JWT（含所有注册信息）
     const tokenResp = await axios.post(`${apiBase}/api/sign-token`, {
       subdomain: form.value.subdomain,
       username: form.value.username,
@@ -265,13 +274,11 @@ async function handleSubmit() {
     const token = tokenResp.data.token
     regProgress.value = 33
 
-    // 第二步：初始化租户数据（JWT 中已包含完整信息）
     await axios.post(`${astraApiBase}/web/admin/register-tenant`, null, {
       headers: { 'X-Reg-Token': token },
     })
     regProgress.value = 66
 
-    // 第三步：创建 DNS 记录
     await axios.post(`${apiBase}/api/create-dns`, { token })
     regProgress.value = 100
     message.success('注册成功！')
@@ -291,13 +298,38 @@ async function handleSubmit() {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: var(--n-color, #f5f5f5);
+  padding: 20px;
 }
 .register-card {
-  width: 700px;
+  width: 560px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.subtitle {
+  font-size: 12px;
+  opacity: 0.6;
+  line-height: 1.3;
 }
 .step-content {
-  margin-top: 24px;
   min-height: 200px;
+}
+.url-input {
+  cursor: pointer;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
 }
 </style>
