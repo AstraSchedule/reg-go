@@ -95,7 +95,7 @@
             <template #header>学校信息</template>
             <n-space vertical size="small">
               <n-text>三个字段的语义可自由定义，比如：</n-text>
-              <n-text depth="3">• 学校名称 <n-text code>39</n-text>，年级 <n-text code>7</n-text>，班级 <n-text code>8</n-text> → 39学校7年级8班（推荐）</n-text>
+              <n-text depth="3">• 学校名称 <n-text code>39</n-text>，年级 <n-text code>7</n-text>，班级 <n-text code>8</n-text> → 39学校7年级8班（建议）</n-text>
               <n-text depth="3">• 学校名称 <n-text code>39</n-text>，年级 <n-text code>2023</n-text>，班级 <n-text code>1</n-text> → 39学校2023级1班</n-text>
               <n-text depth="3">• 学校名称 <n-text code>xx</n-text>，年级 <n-text code>10</n-text>，班级 <n-text code>a</n-text> → xx学校10年级a班</n-text>
               <n-text depth="3">初始化后可自由增删，这里只是创建一个空白班级</n-text>
