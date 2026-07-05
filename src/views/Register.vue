@@ -199,7 +199,7 @@ const astraApiBase = import.meta.env.VITE_ASTRA_API_BASE || ''
 const turnstileSitekey = import.meta.env.VITE_TURNSTILE_SITEKEY || ''
 const isDev = !apiBase.includes('getastra.cn')
 
-const stepStatus = computed(() => submitting.value ? 'process' : 'process')
+const stepStatus = computed(() => 'process')
 
 const canProceed = computed(() => {
   switch (currentStep.value) {
@@ -224,7 +224,7 @@ function checkSubdomain() {
       subdomainStatus.value = resp.data.message
     } catch (e) {
       subdomainAvailable.value = false
-      subdomainStatus.value = '检查失败'
+      subdomainStatus.value = e?.response?.data?.message || '检查失败'
     }
   }, 500)
 }
@@ -245,10 +245,10 @@ function copyUrl() {
 let turnstileWidgetId = null
 
 function renderTurnstile() {
-  if (!turnstileSitekey || !window.turnstile) return
+  if (!turnstileSitekey || !globalThis.turnstile) return
   const container = document.getElementById('turnstile-container')
   if (!container || container.childElementCount > 0) return
-  turnstileWidgetId = window.turnstile.render('#turnstile-container', {
+  turnstileWidgetId = globalThis.turnstile.render('#turnstile-container', {
     sitekey: turnstileSitekey,
     callback: () => { turnstileVerified.value = true },
     'expired-callback': () => { turnstileVerified.value = false },
@@ -256,9 +256,9 @@ function renderTurnstile() {
 }
 
 function resetTurnstile() {
-  if (!window.turnstile || turnstileWidgetId === null) return
+  if (!globalThis.turnstile || turnstileWidgetId === null) return
   turnstileVerified.value = false
-  window.turnstile.reset(turnstileWidgetId)
+  globalThis.turnstile.reset(turnstileWidgetId)
 }
 
 watch(currentStep, (step) => {
