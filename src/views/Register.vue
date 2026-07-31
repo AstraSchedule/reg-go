@@ -284,7 +284,6 @@ async function handleSubmit() {
       grade: form.value.grade,
       class: form.value.class,
       turnstile_token: document.querySelector('[name="cf-turnstile-response"]')?.value || '',
-      internal_secret: 'Internal$KuoHu233*Astra',
     })
     const token = tokenResp.data.token
     regProgress.value = 33
