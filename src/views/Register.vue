@@ -312,8 +312,8 @@ async function handleSubmit() {
 .register-wrapper {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  box-sizing: border-box;
   min-height: 100vh;
   padding: 20px;
 }
@@ -322,6 +322,7 @@ async function handleSubmit() {
 }
 .register-card {
   width: 560px;
+  margin: auto 0;
 }
 .card-header {
   display: flex;
