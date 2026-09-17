@@ -161,6 +161,7 @@
         </n-space>
       </template>
     </n-card>
+    <IcpFiling class="register-icp" />
   </div>
 </template>
 
@@ -172,6 +173,7 @@ import {
   useMessage, useThemeVars
 } from 'naive-ui'
 import axios from 'axios'
+import IcpFiling from '../components/IcpFiling.vue'
 
 const themeVars = useThemeVars()
 const message = useMessage()
@@ -309,10 +311,14 @@ async function handleSubmit() {
 <style scoped>
 .register-wrapper {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   padding: 20px;
+}
+.register-icp {
+  margin-top: 16px;
 }
 .register-card {
   width: 560px;
