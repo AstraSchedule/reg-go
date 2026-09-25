@@ -153,14 +153,17 @@
             <n-descriptions-item label="班级">{{ form.class }}</n-descriptions-item>
           </n-descriptions>
 
-          <div id="turnstile-container" style="margin-top: 16px;">
-            <n-alert v-if="isDev" type="warning">开发模式：Turnstile 人机验证已跳过</n-alert>
-            <n-alert v-else-if="turnstileError" type="error" :title="turnstileError">
+          <div v-if="isDev" style="margin-top: 16px;">
+            <n-alert type="warning">开发模式：ESA AI 验证码已跳过</n-alert>
+          </div>
+          <template v-else>
+            <div id="captcha-element" style="margin-top: 16px;"></div>
+            <n-alert v-if="captchaError" type="error" :title="captchaError" style="margin-top: 8px;">
               请检查网络或广告拦截插件后刷新页面重试。
             </n-alert>
-          </div>
+          </template>
 
-          <n-button type="error" block size="large" :loading="submitting" :disabled="!turnstileVerified || !!turnstileError" @click="handleSubmit" style="margin-top: 16px;">
+          <n-button type="error" block size="large" :loading="submitting" :disabled="!captchaVerified || !!captchaError" @click="handleSubmit" style="margin-top: 16px;">
             确认注册
           </n-button>
           <n-text v-if="submitError" type="error" depth="3" style="display: block; margin-top: 8px;">
@@ -203,8 +206,8 @@ const subdomainStatus = ref('')
 const subdomainChecking = ref(false)
 const subdomainDegraded = ref(false)
 const fqdnPreview = ref('')
-const turnstileVerified = ref(false)
-const turnstileError = ref('')
+const captchaVerifyParam = ref('')
+const captchaError = ref('')
 const submitError = ref('')
 const registered = ref(false)
 const successUrls = ref([])
@@ -222,11 +225,23 @@ const form = ref({
   class: '',
 })
 
+// ESA AI 验证码验签参数的两种承载位置，与后端 handler.CaptchaQueryKey / CaptchaHeaderKey 一致。
+const CAPTCHA_QUERY_KEY = 'captcha_verify_param'
+const CAPTCHA_HEADER_KEY = 'captcha-verify-param'
+
 const apiBase = import.meta.env.VITE_API_BASE || ''
 const astraApiBase = import.meta.env.VITE_ASTRA_API_BASE || ''
-const turnstileSitekey = import.meta.env.VITE_TURNSTILE_SITEKEY || ''
+const captchaSceneId = import.meta.env.VITE_CAPTCHA_SCENE_ID || ''
+// 身份标由 index.html 在 SDK 加载前写入 window.AliyunCaptchaConfig。
+// Vite 对未定义的环境变量会原样保留 %VITE_CAPTCHA_PREFIX%，那是个非空字符串，
+// 因此必须把「未替换的占位符」也判为未配置，否则会带着无效身份标初始化 SDK。
+const captchaPrefix = globalThis.AliyunCaptchaConfig?.prefix || ''
+const captchaConfigured = Boolean(captchaSceneId) && Boolean(captchaPrefix) && !captchaPrefix.startsWith('%')
 // 以构建模式而非 API 域名判断环境，避免忘记配置 VITE_API_BASE 时误判为开发模式。
 const isDev = import.meta.env.DEV
+
+// captchaVerified 表示已拿到可用的验签参数（开发模式视为已通过）。
+const captchaVerified = computed(() => isDev || captchaVerifyParam.value !== '')
 
 const stepStatus = computed(() => 'process')
 
@@ -303,20 +318,17 @@ function checkSubdomain() {
 }
 
 onMounted(() => {
-  if (isDev) {
-    turnstileVerified.value = true
+  if (isDev) return
+  if (!captchaConfigured) {
+    captchaError.value = '前端未配置 ESA 验证码身份标或场景 ID'
     return
   }
-  if (!turnstileSitekey) {
-    turnstileError.value = '前端未配置 Turnstile sitekey'
-    return
-  }
-  renderTurnstile()
+  renderCaptcha()
 })
 
 onUnmounted(() => {
   clearTimeout(checkTimer)
-  clearTimeout(turnstileTimer)
+  clearInterval(captchaTimer)
 })
 
 async function copyUrl(url) {
@@ -330,83 +342,108 @@ async function copyUrl(url) {
   }
 }
 
-let turnstileWidgetId = null
-let turnstileTimer = null
-let turnstileReadyPromise = null
+// captchaInstance 是 ESA AI 验证码实例，用于验签失败后刷新令牌。
+let captchaInstance = null
+// captchaContainer 记录实例初始化时挂载的容器，用于识别容器是否被 v-if 重建过。
+let captchaContainer = null
+let captchaTimer = null
+let captchaReadyPromise = null
 
-// waitForTurnstile 轮询等待 Turnstile 脚本加载完成。
-// 脚本以 async defer 方式引入，挂载时可能尚未就绪。
-function waitForTurnstile(timeoutMs = 10000) {
+// waitForCaptcha 轮询等待 ESA 验证码 SDK 加载完成。
+// SDK 由 index.html 从官方 CDN 引入，挂载时可能尚未就绪。
+function waitForCaptcha(timeoutMs = 10000) {
   return new Promise((resolve) => {
-    if (globalThis.turnstile) {
+    if (globalThis.initAliyunCaptcha) {
       resolve(true)
       return
     }
     const startedAt = Date.now()
-    turnstileTimer = setInterval(() => {
-      if (globalThis.turnstile) {
-        clearInterval(turnstileTimer)
+    captchaTimer = setInterval(() => {
+      if (globalThis.initAliyunCaptcha) {
+        clearInterval(captchaTimer)
         resolve(true)
         return
       }
       if (Date.now() - startedAt >= timeoutMs) {
-        clearInterval(turnstileTimer)
+        clearInterval(captchaTimer)
         resolve(false)
       }
     }, 100)
   })
 }
 
-async function renderTurnstile() {
-  if (turnstileWidgetId !== null) return
-  const container = document.getElementById('turnstile-container')
+// renderCaptcha 初始化 ESA AI 验证码。
+//
+// 身份标已由 index.html 在 SDK 之前写入 window.AliyunCaptchaConfig，这里只需场景 ID。
+// initAliyunCaptcha 不支持重复初始化，因此已初始化过就跳过。
+async function renderCaptcha() {
+  const container = document.getElementById('captcha-element')
   if (!container) return
+  // 容器没变就直接复用已有实例；容器被 v-if 重建（用户返回上一步再进来）时必须重新初始化，
+  // 否则新容器里没有控件，确认按钮会一直禁用。
+  if (captchaInstance && captchaContainer === container) return
 
-  // 并发调用共用同一个等待过程，避免同一个容器被 render 两次。
-  if (!turnstileReadyPromise) {
-    turnstileReadyPromise = waitForTurnstile().finally(() => { turnstileReadyPromise = null })
+  // 并发调用共用同一个等待过程，避免同一个容器被初始化两次。
+  if (!captchaReadyPromise) {
+    captchaReadyPromise = waitForCaptcha().finally(() => { captchaReadyPromise = null })
   }
-  const loaded = await turnstileReadyPromise
+  const loaded = await captchaReadyPromise
   if (!loaded) {
-    turnstileError.value = '人机验证组件加载失败'
+    captchaError.value = '人机验证组件加载失败'
     return
   }
 
-  // 等待期间可能已完成渲染、已离开确认步骤、或容器已被重建，
-  // 因此这里必须重新确认条件，否则会在已失效的容器上渲染。
-  if (turnstileWidgetId !== null) return
-  if (document.getElementById('turnstile-container') !== container) return
+  // 等待期间可能已完成初始化、已离开确认步骤、或容器已被重建，
+  // 因此这里必须重新确认条件，否则会在已失效的容器上初始化。
+  if (captchaInstance && captchaContainer === container) return
+  if (document.getElementById('captcha-element') !== container) return
 
-  turnstileError.value = ''
-  turnstileWidgetId = globalThis.turnstile.render(container, {
-    sitekey: turnstileSitekey,
-    callback: () => { turnstileVerified.value = true },
-    'expired-callback': () => { turnstileVerified.value = false },
-    'error-callback': () => {
-      turnstileVerified.value = false
-      turnstileError.value = '人机验证出错，请刷新页面重试'
+  captchaContainer = container
+  captchaError.value = ''
+  globalThis.initAliyunCaptcha({
+    SceneId: captchaSceneId,
+    mode: 'embed',
+    element: '#captcha-element',
+    language: 'cn',
+    // 一点即过与滑块形态的触发框体尺寸
+    slideStyle: { width: 360, height: 40 },
+    success: (param) => { captchaVerifyParam.value = param },
+    fail: () => { captchaVerifyParam.value = '' },
+    onError: (errorInfo) => {
+      captchaVerifyParam.value = ''
+      captchaError.value = `人机验证出错（${errorInfo?.code || 'unknown'}），请刷新页面重试`
     },
+    getInstance: (instance) => { captchaInstance = instance },
+    // ESA 验证码服务域名，官方要求固定使用
+    server: ['captcha-esa-open.aliyuncs.com', 'captcha-esa-open-b.aliyuncs.com'],
   })
 }
 
-function resetTurnstile() {
-  if (!globalThis.turnstile || turnstileWidgetId === null) return
-  turnstileVerified.value = false
-  globalThis.turnstile.reset(turnstileWidgetId)
+// resetCaptcha 作废已消耗的验签参数（一次性、有效期 90 秒）。
+function resetCaptcha() {
+  captchaVerifyParam.value = ''
+  captchaInstance?.refresh?.()
 }
 
-// turnstileToken 读取当前控件生成的令牌。
-function turnstileToken() {
-  if (isDev) return ''
-  return document.querySelector('[name="cf-turnstile-response"]')?.value || ''
+// captchaParams 返回携带验签参数的请求配置。
+//
+// ESA 文档里查询参数写作 captcha_verify_param、请求头写作 captcha-verify-param，
+// 两种都带上，避免文档口径不一致导致边缘取不到令牌。
+function captchaParams() {
+  const param = captchaVerifyParam.value
+  if (!param) return { params: {}, headers: {} }
+  return {
+    params: { [CAPTCHA_QUERY_KEY]: param },
+    headers: { [CAPTCHA_HEADER_KEY]: param },
+  }
 }
 
 watch(currentStep, (step) => {
   if (step === 4 && !isDev) {
-    renderTurnstile()
+    renderCaptcha()
   }
   // flush: 'post' 让回调在 DOM 更新之后执行；否则切到确认步骤时
-  // #turnstile-container 还没被 v-if 创建，控件永远不会渲染、按钮一直禁用。
+  // #captcha-element 还没被 v-if 创建，控件永远不会初始化、按钮一直禁用。
 }, { flush: 'post' })
 
 // pickSuccessUrls 兼容新旧两种响应：优先用 urls 数组，回退到单个 url 字段。
@@ -417,24 +454,28 @@ function pickSuccessUrls(data) {
 }
 
 async function handleSubmit() {
-  if (!turnstileVerified.value) {
+  if (!captchaVerified.value) {
     message.warning('请完成人机验证')
     return
   }
 
+  const captcha = captchaParams()
   submitting.value = true
   submitError.value = ''
   regProgress.value = 0
   try {
-    const tokenResp = await axios.post(`${apiBase}/api/sign-token`, {
-      subdomain: form.value.subdomain,
-      username: form.value.username,
-      password: form.value.password,
-      school: form.value.school,
-      grade: form.value.grade,
-      class: form.value.class,
-      turnstile_token: turnstileToken(),
-    })
+    const tokenResp = await axios.post(
+      `${apiBase}/api/sign-token`,
+      {
+        subdomain: form.value.subdomain,
+        username: form.value.username,
+        password: form.value.password,
+        school: form.value.school,
+        grade: form.value.grade,
+        class: form.value.class,
+      },
+      captcha,
+    )
     const token = tokenResp.data.token
     regProgress.value = 33
 
@@ -460,7 +501,7 @@ async function handleSubmit() {
     // 后端两步均为幂等，重复提交不会产生重复租户或重复记录。
     submitError.value = e?.response?.data?.error || e?.message || '注册失败'
     message.error(submitError.value)
-    resetTurnstile()
+    resetCaptcha()
   } finally {
     submitting.value = false
   }
