@@ -231,8 +231,12 @@ const CAPTCHA_HEADER_KEY = 'captcha-verify-param'
 
 const apiBase = import.meta.env.VITE_API_BASE || ''
 const astraApiBase = import.meta.env.VITE_ASTRA_API_BASE || ''
-// 身份标不在前端读取：它由 index.html 在 SDK 加载前写入 window.AliyunCaptchaConfig。
 const captchaSceneId = import.meta.env.VITE_CAPTCHA_SCENE_ID || ''
+// 身份标由 index.html 在 SDK 加载前写入 window.AliyunCaptchaConfig。
+// Vite 对未定义的环境变量会原样保留 %VITE_CAPTCHA_PREFIX%，那是个非空字符串，
+// 因此必须把「未替换的占位符」也判为未配置，否则会带着无效身份标初始化 SDK。
+const captchaPrefix = globalThis.AliyunCaptchaConfig?.prefix || ''
+const captchaConfigured = Boolean(captchaSceneId) && Boolean(captchaPrefix) && !captchaPrefix.startsWith('%')
 // 以构建模式而非 API 域名判断环境，避免忘记配置 VITE_API_BASE 时误判为开发模式。
 const isDev = import.meta.env.DEV
 
@@ -315,7 +319,7 @@ function checkSubdomain() {
 
 onMounted(() => {
   if (isDev) return
-  if (!captchaSceneId || !globalThis.AliyunCaptchaConfig?.prefix) {
+  if (!captchaConfigured) {
     captchaError.value = '前端未配置 ESA 验证码身份标或场景 ID'
     return
   }
@@ -340,6 +344,8 @@ async function copyUrl(url) {
 
 // captchaInstance 是 ESA AI 验证码实例，用于验签失败后刷新令牌。
 let captchaInstance = null
+// captchaContainer 记录实例初始化时挂载的容器，用于识别容器是否被 v-if 重建过。
+let captchaContainer = null
 let captchaTimer = null
 let captchaReadyPromise = null
 
@@ -371,9 +377,11 @@ function waitForCaptcha(timeoutMs = 10000) {
 // 身份标已由 index.html 在 SDK 之前写入 window.AliyunCaptchaConfig，这里只需场景 ID。
 // initAliyunCaptcha 不支持重复初始化，因此已初始化过就跳过。
 async function renderCaptcha() {
-  if (captchaInstance) return
   const container = document.getElementById('captcha-element')
   if (!container) return
+  // 容器没变就直接复用已有实例；容器被 v-if 重建（用户返回上一步再进来）时必须重新初始化，
+  // 否则新容器里没有控件，确认按钮会一直禁用。
+  if (captchaInstance && captchaContainer === container) return
 
   // 并发调用共用同一个等待过程，避免同一个容器被初始化两次。
   if (!captchaReadyPromise) {
@@ -387,9 +395,10 @@ async function renderCaptcha() {
 
   // 等待期间可能已完成初始化、已离开确认步骤、或容器已被重建，
   // 因此这里必须重新确认条件，否则会在已失效的容器上初始化。
-  if (captchaInstance) return
+  if (captchaInstance && captchaContainer === container) return
   if (document.getElementById('captcha-element') !== container) return
 
+  captchaContainer = container
   captchaError.value = ''
   globalThis.initAliyunCaptcha({
     SceneId: captchaSceneId,
