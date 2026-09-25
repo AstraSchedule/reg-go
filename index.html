@@ -5,7 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>星程课表 - 注册</title>
   <link rel="icon" href="https://image-hk-1.oss-accelerate.aliyuncs.com/icon.png" />
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <!-- ESA AI 验证码：身份标必须在 SDK 之前声明；SDK 只能从官方 CDN 动态引入，不能本地副本化 -->
+  <script>
+    window.AliyunCaptchaConfig = {
+      region: "cn",
+      prefix: "%VITE_CAPTCHA_PREFIX%",
+    };
+  </script>
+  <script type="text/javascript" src="https://o.alicdn.com/captcha-frontend/aliyunCaptcha/AliyunCaptcha.js"></script>
 </head>
 <body>
   <div id="app"></div>
