@@ -3,7 +3,7 @@
     <n-card class="register-card" :bordered="false">
       <template #header>
         <div class="card-header">
-          <img src="https://cn-nb1.rains3.com/kuohublog-images/2026/09/b179a9ca48077ef92e5aea63c3bfa080.png" alt="Logo" class="logo" />
+          <img src="https://static.khbit.cn/2026/09/b179a9ca48077ef92e5aea63c3bfa080.png" alt="Logo" class="logo" />
           <div>
             <div class="title">星程课表</div>
             <div class="subtitle">注册新租户</div>
