@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 边缘对本站下发 Referrer-Policy: same-origin，跨域请求不会带 Referer，
+       注册页直连 class.getastra.cn 的接口会被 WAF 的「非标 UA 挑战」判成自动化请求。
+       这里显式声明来自第一方页面的来源标识（跨域仅 origin），供 WAF 放行网页流量 -->
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <title>星程课表 - 注册</title>
   <link rel="icon" href="https://static.khbit.cn/2026/09/b179a9ca48077ef92e5aea63c3bfa080.png" />
   <!-- ESA AI 验证码：身份标必须在 SDK 之前声明；SDK 只能从官方 CDN 动态引入，不能本地副本化 -->
